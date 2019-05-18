@@ -1,0 +1,27 @@
+apiVersion: v1
+
+# A Volume Claim is not an actual instance of storage, it's something
+# that we're going to attach to a deployment/pod configuration file
+# If we were to attach it, Kubernetes must find an instance of storage
+# e.g. slice of your HDD, that meets these requirements
+kind: PersistentVolumeClaim
+
+metadata:
+  name: database-persistent-volume-claim
+
+spec:
+  # ReadWriteOnce, means we want to get some instance of storage e.g.
+  # slice of your HDD that can be used by a single node at a time in
+  # both read and write mode. Other access nodes available are:
+  # ReadOnlyMany and ReadWriteMany.
+  # If you attach this to a pod config, Kubernetes will have to find 
+  # an instance of storage with the ReadWriteOnce access mode
+  accessModes:
+    - ReadWriteOnce
+  
+  # Kubernetes will have to find a storage option (that has either been
+  # provisioned ahead of time or created on the fly) that has 2GB of space
+  # We could easily up this to any number of GBs e.g. 100Gi for 100GB
+  resources:
+    requests:
+      storage: 2Gi
