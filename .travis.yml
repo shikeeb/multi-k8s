@@ -1,0 +1,27 @@
+# We're making use of Docker so this is needed
+# since Docker requires root access
+sudo: required
+
+# Docker service needs to be pre-installed
+# since we need to build images in the build
+services:
+  - docker
+
+before_install:
+  # Get the sdk CLI
+  - curl https://sdk.cloud.google.com | bash > /dev/null;
+  
+  # This will look at the default install location of google cloud
+  # sdk which is at $HOME/google-cloud-sdk and it will source the
+  # file path.bash.inc in order to apply modifications to our shell
+  - source $HOME/google-cloud-sdk/path.bash.inc
+
+  # Install and/or update the kubectl command - this will be used to
+  # apply the config files later down the line
+  - gcloud components update kubectl
+
+  # We need to do some authorization with google cloud SDK in order to 
+  # get access to our account. activate-service-account is equivalent to
+  # us setting up an IAM account in AWS, we create a service account and 
+  # provide a key in order to authenticate
+  - gcloud auth activate-service-account --key-file service-account.json
