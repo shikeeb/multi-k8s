@@ -53,7 +53,7 @@ before_install:
 
   # Logs into Docker CLI, user/pass are passed in to the command and they
   # are already available as environment variables in Travis CI web
-  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" -- password-stdin
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 
   # Need to build our image first and give it a temporary tag of react-test
   # Remember, only the dev version of our container runs the tests
