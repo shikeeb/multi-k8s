@@ -2,12 +2,25 @@
 # since Docker requires root access
 sudo: required
 
+env:
+  global:
+    # Get the commit SHA and store as an environment variable
+    - SHA=$(git rev-parse HEAD)
+
+    # Ensures that Google Cloud CLI doesn't display prompts that
+    # cause the build to hang
+    - CLOUDSDK_CORE_DISABLE_PROMPTS=1
+
 # Docker service needs to be pre-installed
 # since we need to build images in the build
 services:
   - docker
 
 before_install:
+  # Generated from Travis CLI. This decrypts the service-account.json file
+  # and places it into our root project directory i.e. ./service-account.json
+  - openssl aes-256-cbc -K $encrypted_0c35eebf403c_key -iv $encrypted_0c35eebf403c_iv -in service-account.json.enc -out service-account.json -d
+
   # Get the sdk CLI
   - curl https://sdk.cloud.google.com | bash > /dev/null;
   
@@ -25,3 +38,35 @@ before_install:
   # us setting up an IAM account in AWS, we create a service account and 
   # provide a key in order to authenticate
   - gcloud auth activate-service-account --key-file service-account.json
+
+  # we need to tell Google Cloud which project we need to work on since we
+  # can have multiple projects to work on. Note you'll need the project ID 
+  # not the project name which you can get from the dashboard
+  - gcloud config set project multi-k8s-241018
+
+  # This sets the location of the cluster
+  - gcloud config set compute/zone europe-west1-b	
+
+  # Tell Google Cloud, which cluster we're referring to whenever we issue
+  # any kubectl related commands, you can have multiple clusters in a project
+  - gcloud container clusters get-credentials multi-cluster
+
+  # Logs into Docker CLI, user/pass are passed in to the command and they
+  # are already available as environment variables in Travis CI web
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" -- password-stdin
+
+  # Need to build our image first and give it a temporary tag of react-test
+  # Remember, only the dev version of our container runs the tests
+  - docker build -t sxa011/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  # By default npm runs in watch mode, which won't allow us to move forward
+  # this is why we add -- --coverage
+  - docker run sxa011/react-test npm test -- --coverage
+
+deploy:
+  # Tells Travis, just run the script file for us
+  provider: script
+  script: bash ./deploy.sh
+  on:
+    branch: master
