@@ -57,7 +57,7 @@ before_install:
 
   # Need to build our image first and give it a temporary tag of react-test
   # Remember, only the dev version of our container runs the tests
-  - docker build -t sxa011/react-test -f ./client/Dockerfile.dev ./client
+  - docker build -t sxa011/react-test -f ./client/dev.Dockerfile ./client
 
 script:
   # By default npm runs in watch mode, which won't allow us to move forward
