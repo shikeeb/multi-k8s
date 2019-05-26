@@ -1,0 +1,39 @@
+apiVersion: certmanager.k8s.io/v1alpha1
+
+kind: Certificate
+
+metadata:
+  # domain name - indicate it's a TLS cert
+  name: shikeeb-com-tls
+
+spec:
+  # Where the certificate will be stored once
+  # it is obtained from the CA. This will be auto
+  # created for us in the cluster
+  secretName: shikeeb-com
+
+  # The issuer we want to use in order to obtain
+  # the certificate (one we setup earlier)
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  
+  # This will be put on the certificate metadata
+  commonName: shikeeb.com
+
+  # List of all the different domains that should
+  # be associated with the certificate i.e. the cert
+  # will be good for the following domains
+  dnsNames:
+    - shikeeb.com
+    - www.shikeeb.com
+
+  # These are domains that the verification process
+  # is going to attempt to access in order to verify
+  acme:
+    config:
+      - http01:
+          ingressClass: nginx
+        domains:
+          - shikeeb.com
+          - www.shikeeb.com

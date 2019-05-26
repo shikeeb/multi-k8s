@@ -1,0 +1,27 @@
+# Describes to our cert manager, where it should go
+# in an attempt to retrieve a certificate
+
+# Bucket of object types we can pull from
+# issue object is in this api version
+apiVersion: certmanager.k8s.io/v1alpha1
+
+kind: ClusterIssuer
+
+metadata:
+  # Reach out to the production version of letsencrypt
+  name: letsencrypt-prod
+
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: 'abc@123sdfjdjfsldfj.com'
+    
+    # During the exchange with LetsEncrypt a secret is sent over
+    # to help verify the authentication of our domain (this is not
+    # the secret where we store the certificate in the cluster)
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    
+    # We want to use the http process (from the diagram) of
+    # obtaining the certificate
+    http01: {}
