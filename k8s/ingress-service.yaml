@@ -19,13 +19,41 @@ metadata:
     # that we don't have to have /api before all of our endpoints
     nginx.ingress.kubernetes.io/rewrite-target: /$1
 
+    # This will inform our ingress service that we'll be making
+    # use of a letsencrypt certificate
+    certmanager.k8s.io/cluster-issuer: 'letsencrypt-prod'
+
+    # Forces users to make use of HTTPS Traffic
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+
 spec:
+  # We want to serve HTTPS traffic on these two hostnames
+  tls:
+    - hosts:
+        - shikeeb.com
+        - www.shikeeb.com
+      # Name of the secret that the certificate is stored in
+      secretName: shikeeb-com
+
   # There are two possible paths that we can match traffic to
   # if they come to just / - send the request to whichever
   # set of pods are governed by the client-cluster-ip-service
   # Same for /api/ and server-cluster-ip-service
   rules:
-    - http:
+    # If someone comes to shikeeb.com, use the following rules
+    - host: shikeeb.com
+      http:
+        paths:
+          - path: /?(.*)
+            backend:
+              serviceName: client-cluster-ip-service
+              servicePort: 3000
+          - path: /api/?(.*)
+            backend:
+              serviceName: server-cluster-ip-service
+              servicePort: 5000
+    - host: www.shikeeb.com
+      http:
         paths:
           - path: /?(.*)
             backend:
